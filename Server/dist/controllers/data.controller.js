@@ -81,8 +81,8 @@ exports.saveData = (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void
 }));
 // Execute function
 exports.getCollege = (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const colleges = yield prisma_1.default.college.findMany();
-    res.status(200).json(colleges);
+    const colleges = yield prisma_1.default.college.findMany({});
+    res.status(200).json(new errorHandler_1.ApiResponse(200, colleges, "Colleges fetched successfully"));
 }));
 exports.getCollegeById = (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;

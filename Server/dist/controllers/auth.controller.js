@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.loginFaculty = exports.facultyRegister = exports.loginStudent = exports.studentRegister = exports.logOut = exports.getMe = exports.loginUser = exports.createUser = void 0;
+exports.getFacultyProfile = exports.loginFaculty = exports.facultyRegister = exports.getStudentProfile = exports.loginStudent = exports.studentRegister = exports.logOut = exports.getMe = exports.loginUser = exports.createUser = void 0;
 const errorHandler_1 = require("../utils/errorHandler");
 const prisma_1 = __importDefault(require("../config/prisma"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
@@ -103,9 +103,13 @@ exports.loginStudent = (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(
     const data = yield prisma_1.default.student.findUnique({ where: { id: student.id }, select: { id: true, fullname: true, email: true } });
     res.status(StatusCodes_1.StatusCode.OK).json(new errorHandler_1.ApiResponse(StatusCodes_1.StatusCode.OK, Object.assign(Object.assign({}, data), { token }), "Login successful"));
 }));
+exports.getStudentProfile = (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield prisma_1.default.student.findUnique({ where: { id: req.user.id }, select: { id: true, fullname: true, email: true, collegeId: true, enrollment: true, gender: true } });
+    res.status(StatusCodes_1.StatusCode.OK).json(new errorHandler_1.ApiResponse(StatusCodes_1.StatusCode.OK, user, "User fetched successfully"));
+}));
 exports.facultyRegister = (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { fullname, email, password, collegeId } = req.body;
-    if (!fullname || !email || !password || !collegeId) {
+    const { fullname, email, password, collegeId, gender } = req.body;
+    if (!fullname || !email || !password || !collegeId || !gender) {
         res.status(StatusCodes_1.StatusCode.BAD_REQUEST).json(new errorHandler_1.ApiResponse(StatusCodes_1.StatusCode.BAD_REQUEST, null, "All fields are required"));
         return;
     }
@@ -121,9 +125,9 @@ exports.facultyRegister = (0, errorHandler_1.asyncHandler)((req, res) => __await
     }
     const hashedPassword = yield bcrypt_1.default.hash(password, 10);
     const faculty = yield prisma_1.default.faculty.create({
-        data: { fullname, email, password: hashedPassword, college: { connect: { id: collegeId } } }
+        data: { fullname, email, password: hashedPassword, gender, college: { connect: { id: collegeId } } }
     });
-    const registeredFaculty = yield prisma_1.default.faculty.findUnique({ where: { id: faculty.id }, select: { id: true, fullname: true, email: true, collegeId: true } });
+    const registeredFaculty = yield prisma_1.default.faculty.findUnique({ where: { id: faculty.id }, select: { id: true, fullname: true, email: true, collegeId: true, gender: true } });
     res.status(StatusCodes_1.StatusCode.CREATED).json(new errorHandler_1.ApiResponse(StatusCodes_1.StatusCode.CREATED, registeredFaculty, "Faculty registered successfully"));
 }));
 exports.loginFaculty = (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -143,6 +147,10 @@ exports.loginFaculty = (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(
         return;
     }
     const token = (0, jsonwebtoken_1.sign)({ id: faculty.id }, process.env.JWT_SECRET, { expiresIn: "1d" });
-    const data = yield prisma_1.default.faculty.findUnique({ where: { id: faculty.id }, select: { id: true, fullname: true, email: true } });
+    const data = yield prisma_1.default.faculty.findUnique({ where: { id: faculty.id }, select: { id: true, fullname: true, email: true, gender: true } });
     res.status(StatusCodes_1.StatusCode.OK).json(new errorHandler_1.ApiResponse(StatusCodes_1.StatusCode.OK, Object.assign(Object.assign({}, data), { token }), "Login successful"));
+}));
+exports.getFacultyProfile = (0, errorHandler_1.asyncHandler)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield prisma_1.default.faculty.findUnique({ where: { id: req.user.id }, select: { id: true, fullname: true, email: true, collegeId: true, gender: true } });
+    res.status(StatusCodes_1.StatusCode.OK).json(new errorHandler_1.ApiResponse(StatusCodes_1.StatusCode.OK, user, "User fetched successfully"));
 }));
